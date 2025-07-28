@@ -12,6 +12,7 @@ if game.PlaceId == 17072376063 then
 
     local function AutoHealthFarm()
         task.spawn(function()
+            print("AutoHealthFarm started")
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local Modules = ReplicatedStorage:WaitForChild("Modules")
             local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
@@ -29,6 +30,7 @@ if game.PlaceId == 17072376063 then
 
     local function StrAutoFarm()
         task.spawn(function()
+            print("StrAutoFarm started")
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local Modules = ReplicatedStorage:WaitForChild("Modules")
             local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
@@ -46,7 +48,7 @@ if game.PlaceId == 17072376063 then
 
     local FarmTab = Window:MakeTab({
         Name = "Strength Autofarm",
-        Icon = "rbxassetid://74077778", -- corregido
+        Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
 
@@ -54,6 +56,7 @@ if game.PlaceId == 17072376063 then
         Name = "Auto Strength",
         Default = false,
         Callback = function(Value)
+            print("Toggle Strength: ", Value)
             _G.StrAutoFarm = Value
             if Value then
                 StrAutoFarm()
@@ -63,7 +66,7 @@ if game.PlaceId == 17072376063 then
 
     local FarmTab2 = Window:MakeTab({
         Name = "Health Autofarm",
-        Icon = "rbxassetid://74077778", -- corregido
+        Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
 
@@ -71,6 +74,7 @@ if game.PlaceId == 17072376063 then
         Name = "Auto Health",
         Default = false,
         Callback = function(Value)
+            print("Toggle Health: ", Value)
             _G.AutoHealthFarm = Value
             if Value then
                 AutoHealthFarm()
