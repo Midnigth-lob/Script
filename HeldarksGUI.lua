@@ -9,6 +9,7 @@ if game.PlaceId == 17072376063 then
 
     _G.StrAutoFarm = false
     _G.AutoHealthFarm = false
+    local KillAura = false
 
     local function AutoHealthFarm()
         task.spawn(function()
@@ -47,7 +48,7 @@ if game.PlaceId == 17072376063 then
     end
 
     local FarmTab = Window:MakeTab({
-        Name = "Strength Autofarm",
+        Name = "Autofarm",
         Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
@@ -64,13 +65,7 @@ if game.PlaceId == 17072376063 then
         end
     })
 
-    local FarmTab2 = Window:MakeTab({
-        Name = "Health Autofarm",
-        Icon = "rbxassetid://74077778",
-        PremiumOnly = false
-    })
-
-    FarmTab2:AddToggle({
+    FarmTab:AddToggle({
         Name = "Auto Health",
         Default = false,
         Callback = function(Value)
@@ -81,6 +76,105 @@ if game.PlaceId == 17072376063 then
             end
         end
     })
+
+    local FarmTab1 = Window:MakeTab({
+        Name = "Autofarm",
+        Icon = "rbxassetid://74077778",
+        PremiumOnly = false
+    })
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local killAuraEnabled = false
+local killAuraRange = 15
+
+local FarmTab1 = Window:MakeTab({
+    Name = "Autofarm",
+    Icon = "rbxassetid://74077778",
+    PremiumOnly = false
+})
+
+FarmTab1:AddToggle({
+    Name = "Kill Aura",
+    Default = false,
+    Callback = function(Value)
+        killAuraEnabled = Value
+
+        if Value then
+            task.spawn(function()
+                while killAuraEnabled do
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                            if dist <= killAuraRange then
+                                local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                                if humanoid and humanoid.Health > 0 then
+                                    humanoid.Health = 0
+                                end
+                            end
+                        end
+                    end
+                    task.wait(0.3)
+                end
+            end)
+        end
+    end
+})
+
+
+FarmTab1:AddSlider({
+    Name = "Distancia del Kill Aura",
+    Min = 5,
+    Max = 50,
+    Default = 15,
+    Increment = 1,
+    Callback = function(Value)
+        killAuraRange = Value
+    end
+})
+
+
+local FarmTab2 = Window:MakeTab({
+    Name = "Configuration",
+    Icon = "rbxassetid://74077778",
+    PremiumOnly = false
+})
+
+local AntiLagEnabled = false
+
+FarmTab2:AddToggle({
+    Name = "AntiLag",
+    Default = false,
+    Callback = function(Value)
+        AntiLagEnabled = Value
+
+        game.Workspace:WaitForChild("Trees"):Destroy()
+        
+    end
+})
+
+local player = game.Players.PlayerAdded
+local Character = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+local KickEnabled = false
+
+
+FarmTab2:AddToggle({
+    Name = "Kick players",
+    Default = false,
+    Callback = function(Value)
+        KickEnabled = Value  
+
+        if player and Character == true then
+            
+            player.Kick()
+
+        end 
+    end  
+})
+
+    
 
     OrionLib:Init()
 end
