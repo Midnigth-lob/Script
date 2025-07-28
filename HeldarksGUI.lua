@@ -72,30 +72,29 @@ if game.PlaceId == 17072376063 then
         PremiumOnly = false
     })
 
+    local HitboxRemote = ReplicatedStorage:WaitForChild("HitboxClassRemote")
+
+    task.spawn(function()
+        while true do
+            if killAuraEnabled then
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if dist <= killAuraRange then
+                            HitboxRemote:FireServer(player.Character)
+                        end
+                    end
+                end
+            end
+            task.wait(0.3)
+        end
+    end)
+
     FarmTab1:AddToggle({
         Name = "Kill Aura",
         Default = false,
         Callback = function(Value)
             killAuraEnabled = Value
-
-            if Value then
-                task.spawn(function()
-                    while killAuraEnabled do
-                        for _, player in pairs(Players:GetPlayers()) do
-                            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                                if dist <= killAuraRange then
-                                    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                                    if humanoid and humanoid.Health > 0 then
-                                        humanoid.Health = 0
-                                    end
-                                end
-                            end
-                        end
-                        task.wait(0.3)
-                    end
-                end)
-            end
         end
     })
 
@@ -110,7 +109,6 @@ if game.PlaceId == 17072376063 then
         end
     })
 
-    -- === AntiLag Section === --
     local FarmTab2 = Window:MakeTab({
         Name = "Configuration",
         Icon = "rbxassetid://74077778",
@@ -137,6 +135,75 @@ if game.PlaceId == 17072376063 then
                         tree.Parent = treesFolder
                     end
                     savedTrees = {}
+                end
+            end
+        end
+    })
+
+    -- Hitbox Visual System
+    local hitboxAuraEnabled = false
+    local auraPart
+
+    FarmTab2:AddToggle({
+        Name = "Mostrar Hitbox Visual (Aura)",
+        Default = false,
+        Callback = function(Value)
+            hitboxAuraEnabled = Value
+            if Value then
+                if not auraPart then
+                    auraPart = Instance.new("Part")
+                    auraPart.Shape = Enum.PartType.Ball
+                    auraPart.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
+                    auraPart.Transparency = 0.5
+                    auraPart.Color = Color3.fromRGB(255, 0, 0)
+                    auraPart.Material = Enum.Material.ForceField
+                    auraPart.Anchored = true
+                    auraPart.CanCollide = false
+                    auraPart.Parent = workspace
+                end
+                task.spawn(function()
+                    while hitboxAuraEnabled do
+                        auraPart.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
+                        auraPart.Position = LocalPlayer.Character.HumanoidRootPart.Position
+                        task.wait()
+                    end
+                end)
+            else
+                if auraPart then
+                    auraPart:Destroy()
+                    auraPart = nil
+                end
+            end
+        end
+    })
+
+    -- Hitbox Expand System
+    local expandHitboxes = false
+
+    FarmTab2:AddToggle({
+        Name = "Expandir Hitbox de otros jugadores",
+        Default = false,
+        Callback = function(Value)
+            expandHitboxes = Value
+            if Value then
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        for _, part in pairs(player.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.Size = part.Size + Vector3.new(3, 3, 3)
+                            end
+                        end
+                    end
+                end
+            else
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        for _, part in pairs(player.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.Size = Vector3.new(2, 2, 1) -- Tamaño estándar, ajustar según el juego
+                            end
+                        end
+                    end
                 end
             end
         end
