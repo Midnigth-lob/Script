@@ -105,7 +105,7 @@ if game.PlaceId == 17072376063 then
                         local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
                         if dist <= killAuraRange then
                             -- Aquí disparás el remote pasando el HumanoidRootPart para el hitbox
-                            HitboxRemote:FireServer(humanoid)
+                            HitboxRemote:FireServer(player.Character)
                         end
                     end
                 end
