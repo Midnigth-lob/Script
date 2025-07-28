@@ -74,10 +74,9 @@ if game.PlaceId == 17072376063 then
 
     local HitboxRemote = ReplicatedStorage:WaitForChild("HitboxClassRemote")
 
-    -- Tabla para guardar las auras de cada jugador
     local auraParts = {}
+    local hitboxAuraEnabled = false
 
-    -- Función para crear aura para un jugador
     local function createAuraForPlayer(player)
         if auraParts[player] then return auraParts[player] end
         local part = Instance.new("Part")
@@ -93,39 +92,36 @@ if game.PlaceId == 17072376063 then
         return part
     end
 
-    local hitboxAuraEnabled = false
-
     task.spawn(function()
         while true do
             if killAuraEnabled then
                 for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChildOfClass("Humanoid") and player.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
-                        local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                        if humanoid and humanoid.Health > 0 then
+                            local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
 
-                        -- Kill Aura
-                        if dist <= killAuraRange then
-                            -- Intento matar enviando el HumanoidRootPart
-                            HitboxRemote:FireServer(player.Character.HumanoidRootPart)
-                        end
+                            if dist <= killAuraRange then
+                                -- Enviar Humanoid para intentar kill real
+                                HitboxRemote:FireServer(humanoid)
+                            end
 
-                        -- Actualizar aura visual si está habilitado
-                        if hitboxAuraEnabled then
-                            local aura = createAuraForPlayer(player)
-                            aura.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
-                            aura.Position = player.Character.HumanoidRootPart.Position
-                            aura.Transparency = 0.5
-                            aura.Parent = workspace
+                            if hitboxAuraEnabled then
+                                local aura = createAuraForPlayer(player)
+                                aura.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
+                                aura.Position = player.Character.HumanoidRootPart.Position
+                                aura.Parent = workspace
+                            elseif auraParts[player] then
+                                auraParts[player]:Destroy()
+                                auraParts[player] = nil
+                            end
                         elseif auraParts[player] then
                             auraParts[player]:Destroy()
                             auraParts[player] = nil
                         end
-                    elseif auraParts[player] then
-                        auraParts[player]:Destroy()
-                        auraParts[player] = nil
                     end
                 end
             else
-                -- Cuando killAura está apagado, destruir todas las auras
                 for p, aura in pairs(auraParts) do
                     aura:Destroy()
                     auraParts[p] = nil
@@ -187,6 +183,31 @@ if game.PlaceId == 17072376063 then
 
     local expandHitboxes = false
 
+    local function expandCharacterHitbox(character)
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Size = part.Size + Vector3.new(10, 10, 10)
+            end
+        end
+    end
+
+    local function resetCharacterHitbox(character)
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Size = Vector3.new(2, 2, 1) -- Ajusta si el tamaño original es otro
+            end
+        end
+    end
+
+    Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function(character)
+            if expandHitboxes then
+                task.wait(0.5)
+                expandCharacterHitbox(character)
+            end
+        end)
+    end)
+
     FarmTab2:AddToggle({
         Name = "Expandir Hitbox de otros jugadores",
         Default = false,
@@ -195,21 +216,13 @@ if game.PlaceId == 17072376063 then
             if Value then
                 for _, player in pairs(Players:GetPlayers()) do
                     if player ~= LocalPlayer and player.Character then
-                        for _, part in pairs(player.Character:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.Size = part.Size + Vector3.new(10, 10, 10)
-                            end
-                        end
+                        expandCharacterHitbox(player.Character)
                     end
                 end
             else
                 for _, player in pairs(Players:GetPlayers()) do
                     if player ~= LocalPlayer and player.Character then
-                        for _, part in pairs(player.Character:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.Size = Vector3.new(2, 2, 1) -- Ajustar según el tamaño original estándar
-                            end
-                        end
+                        resetCharacterHitbox(player.Character)
                     end
                 end
             end
@@ -226,4 +239,3 @@ if game.PlaceId == 17072376063 then
 
     OrionLib:Init()
 end
-
