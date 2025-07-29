@@ -120,15 +120,41 @@ if game.PlaceId == 17072376063 then
         Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
-
-    local Players = game:GetService("Players")
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local killAuraEnabled = true
+local killAuraRange = 500
+local hitboxAuraEnabled = true
 
-local killAuraEnabled = false
-local killAuraRange = 15
-local hitboxAuraEnabled = false
+local remoteNames = {
+    "HitboxEvent",
+    "DestroyEvent",
+    "SetDialogInUse",
+    "ContactListInvokeIrisinvite",
+    "ContactListInvokeIrisinviteTeleport",
+    "UpdateCurrentCall",
+    "RequestDeviceCameraOrientation",
+    "RequestDeviceCameraCFrame",
+    "ReciveLikelySpeakingUsers",
+    "ReferedPlayerJoin",
+    "UpdateLocalPlayerBlockList",
+    "SendPlayerProfileSettings",
+    "SetDialougeInUse",
+    "BridgeNet2",
+    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
+    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
+}
+
+local usableRemote = nil
+for _, name in pairs(remoteNames) do
+    local remote = ReplicatedStorage:FindFirstChild(name)
+    if remote and remote:IsA("RemoteEvent") then
+        usableRemote = remote
+        break
+    end
+end
+
 local auraParts = {}
 
 local function createAuraForPlayer(player)
@@ -148,42 +174,24 @@ end
 
 task.spawn(function()
     while true do
-        if killAuraEnabled then
+        if killAuraEnabled and usableRemote then
             local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             local root = character:FindFirstChild("HumanoidRootPart")
             if root then
-                local tool = character:FindFirstChildOfClass("Tool")
-                local combatRemote
-
-                if tool then
-                    combatRemote = tool:FindFirstChildWhichIsA("RemoteEvent", true)
-                end
-
-                if not combatRemote then
-                    for _, desc in ipairs(character:GetDescendants()) do
-                        if desc:IsA("RemoteEvent") and string.lower(desc.Name):find("sweep") then
-                            combatRemote = desc
-                            break
-                        end
-                    end
-                end
-
-                if combatRemote then
-                    for _, player in pairs(Players:GetPlayers()) do
-                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                            local dist = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                            if humanoid and humanoid.Health > 0 and dist <= killAuraRange then
-                                pcall(function()
-                                    combatRemote:FireServer(player.Character.HumanoidRootPart)
-                                end)
-                            end
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                        local dist = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if humanoid and humanoid.Health > 0 and dist <= killAuraRange then
+                            pcall(function()
+                                usableRemote:FireServer(player.Character)
+                            end)
                         end
                     end
                 end
             end
         end
-        task.wait(0.3)
+        task.wait(0.2)
     end
 end)
 
@@ -206,6 +214,8 @@ task.spawn(function()
         task.wait(0.2)
     end
 end)
+
+
     FarmTab1:AddToggle({
         Name = "Kill Aura",
         Default = false,
