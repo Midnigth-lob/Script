@@ -55,33 +55,37 @@ if game.PlaceId == 17072376063 then
     local killAuraEnabled = false
     local killAuraRange = 15
 
-    local Modules = ReplicatedStorage:WaitForChild("Modules")
-    local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
-
     local function AutoHealthFarm()
-        
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local Modules = ReplicatedStorage:WaitForChild("Modules")
         local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
-        local pullUpRemote = BridgeNet.ReferenceBridge("imadumbexploiter3527d36bd7d656f96a836f1df5085590")
-        
+
+        local pullUpRemote = BridgeNet.ReferenceBridge(
+                                 "imadumbexploiter3527d36bd7d656f96a836f1df5085590")
+
         local DUPLIKATIONEN = 150
-        
+
         while true do
             for i = 2, DUPLIKATIONEN * 10 * 2.5 do
                 pullUpRemote:Fire()
             end
             task.wait(2)
         end
+    end
 
     local function StrAutoFarm()
+
+        -- 𝐇𝐞𝐥𝐃𝐚𝐫𝐤𝐬 - FUERZA 😛🧬
+
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local Modules = ReplicatedStorage:WaitForChild("Modules")
         local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
-        local remote = BridgeNet.ReferenceBridge("imadumbexploiter9d7f88729c2c6ceff3bb1ce223049848")
-        
+
+        local remote = BridgeNet.ReferenceBridge(
+                           "imadumbexploiter9d7f88729c2c6ceff3bb1ce223049848")
+
         local ANZAHL_DUPLIKATIONEN = 150
-        
+
         while true do
             for i = 2, ANZAHL_DUPLIKATIONEN * 10 * 2.5 do
                 remote:Fire()
@@ -89,6 +93,7 @@ if game.PlaceId == 17072376063 then
             task.wait(2)
         end
 
+    end
 
     local FarmTab = Window:MakeTab({
         Name = "Autofarm",
@@ -249,7 +254,8 @@ if game.PlaceId == 17072376063 then
         PremiumOnly = false
     })
 
-    CreditsTab:AddParagraph("Hecho por:", "darkpro77731 - Elcapo3000677 / HERLAN37237")
+    CreditsTab:AddParagraph("Hecho por:",
+                            "darkpro77731 - Elcapo3000677 / HERLAN37237")
 
     OrionLib:Init()
 end
