@@ -1,3 +1,34 @@
+local remotes = {
+    "HitboxEvent",
+    "DestroyEvent",
+    "SetDialogInUse",
+    "ContactListInvokeIrisinvite",
+    "ContactListInvokeIrisinviteTeleport",
+    "UpdateCurrentCall",
+    "RequestDeviceCameraOrientation",
+    "RequestDeviceCameraCFrame",
+    "ReciveLikelySpeakingUsers",
+    "ReferedPlayerJoin",
+    "UpdateLocalPlayerBlockList",
+    "SendPlayerProfileSettings",
+    "SetDialougeInUse",
+    "BridgeNet2.metaRemoteEvent",
+    "BridgeNet2.dataRemoteEvent",
+    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
+    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
+}
+
+for _, name in pairs(remotes) do
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild(name)
+    if remote and remote:IsA("RemoteEvent") then
+        -- Destruir conexiones sin hookear
+        remote:Destroy()
+        print("[ANTIKICK] Remote destruido: " .. name)
+    end
+end
+
+
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
