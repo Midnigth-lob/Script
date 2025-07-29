@@ -120,98 +120,49 @@ if game.PlaceId == 17072376063 then
         Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
-local Players = game:GetService("Players")
+
+    local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local killAuraEnabled = true
-local killAuraRange = 500
-local hitboxAuraEnabled = true
+local RunService = game:GetService("RunService")
 
-local remoteNames = {
-    "HitboxEvent",
-    "DestroyEvent",
-    "SetDialogInUse",
-    "ContactListInvokeIrisinvite",
-    "ContactListInvokeIrisinviteTeleport",
-    "UpdateCurrentCall",
-    "RequestDeviceCameraOrientation",
-    "RequestDeviceCameraCFrame",
-    "ReciveLikelySpeakingUsers",
-    "ReferedPlayerJoin",
-    "UpdateLocalPlayerBlockList",
-    "SendPlayerProfileSettings",
-    "SetDialougeInUse",
-    "BridgeNet2",
-    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
-    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
-}
+-- Configurable
+local KillAuraEnabled = true
+local Range = 20 -- distancia del aura
 
-local usableRemote = nil
-for _, name in pairs(remoteNames) do
-    local remote = ReplicatedStorage:FindFirstChild(name)
-    if remote and remote:IsA("RemoteEvent") then
-        usableRemote = remote
+-- Buscar el RemoteEvent
+local combatRemote = nil
+for _, v in pairs(getgc(true)) do
+    if typeof(v) == "Instance" and v:IsA("RemoteEvent") and v.Name == "Combat" then
+        combatRemote = v
         break
     end
 end
 
-local auraParts = {}
-
-local function createAuraForPlayer(player)
-    if auraParts[player] then return auraParts[player] end
-    local part = Instance.new("Part")
-    part.Shape = Enum.PartType.Ball
-    part.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
-    part.Transparency = 1
-    part.Color = Color3.fromRGB(255, 0, 0)
-    part.Material = Enum.Material.ForceField
-    part.Anchored = true
-    part.CanCollide = false
-    part.Parent = workspace
-    auraParts[player] = part
-    return part
+-- Si no encontró el remote
+if not combatRemote then
+    warn("Remote 'Combat' no encontrado.")
+    return
 end
 
-task.spawn(function()
-    while true do
-        if killAuraEnabled and usableRemote then
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local root = character:FindFirstChild("HumanoidRootPart")
-            if root then
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                        local dist = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                        if humanoid and humanoid.Health > 0 and dist <= killAuraRange then
-                            pcall(function()
-                                usableRemote:FireServer(player.Character)
-                            end)
-                        end
-                    end
-                end
-            end
-        end
-        task.wait(0.2)
-    end
-end)
+-- Función para atacar jugadores
+local function attackPlayer(target)
+    -- Esto puede variar según el juego. Algunos juegos mandan un table con información
+    -- Este es un ejemplo general. Podés adaptar el payload si sabés cómo funciona.
+    combatRemote:FireServer(target)
+end
 
-task.spawn(function()
-    while true do
-        if hitboxAuraEnabled then
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local aura = auraParts[player] or createAuraForPlayer(player)
-                    aura.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
-                    aura.CFrame = player.Character.HumanoidRootPart.CFrame
-                    aura.Transparency = 0.5
-                end
-            end
-        else
-            for _, aura in pairs(auraParts) do
-                aura.Transparency = 1
+-- Loop Kill Aura
+RunService.Heartbeat:Connect(function()
+    if not KillAuraEnabled then return end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if myHrp and (myHrp.Position - hrp.Position).Magnitude <= Range then
+                attackPlayer(player)
             end
         end
-        task.wait(0.2)
     end
 end)
 
