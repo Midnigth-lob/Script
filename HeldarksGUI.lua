@@ -1,3 +1,7 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Hook para bloquear llamadas Kick directas
 local mt = getrawmetatable(game)
 local oldNamecall = mt.__namecall
 setreadonly(mt, false)
@@ -6,12 +10,16 @@ mt.__namecall = newcclosure(function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
 
+    if not checkcaller() and self == LocalPlayer and method == "Kick" then
+        warn("[ANTIKICK] Intento de Kick bloqueado")
+        return
+    end
+
     if method == "FireServer" then
         for _, remote in pairs(suspiciousRemotes) do
             if self == remote then
                 print("[ANTIKICK] Bloqueado FireServer en "..remote:GetFullName())
-                -- En lugar de retornar nil, simplemente "engañamos" con un valor válido
-                -- Por ejemplo, devolver true para que el llamador no se crashee
+                -- Bloqueamos el kick pero dejamos que el script siga sin romper la GUI
                 return true
             end
         end
@@ -21,6 +29,13 @@ mt.__namecall = newcclosure(function(self, ...)
 end)
 
 setreadonly(mt, true)
+
+-- También sobreescribimos Kick directo (por si se llama así)
+LocalPlayer.Kick = function(...)
+    warn("[ANTIKICK] Kick directo bloqueado")
+    -- no hacer nada para bloquear kick
+end
+
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
     local Window = OrionLib:MakeWindow({
