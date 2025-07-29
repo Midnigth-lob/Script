@@ -1,40 +1,41 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Hook para bloquear llamadas Kick directas
-local mt = getrawmetatable(game)
-local oldNamecall = mt.__namecall
-setreadonly(mt, false)
+local suspiciousNames = {
+    "HitboxEvent",
+    "DestroyEvent",
+    "SetDialogInUse",
+    "ContactListInvokeIrisinvite",
+    "ContactListInvokeIrisinviteTeleport",
+    "UpdateCurrentCall",
+    "RequestDeviceCameraOrientation",
+    "RequestDeviceCameraCFrame",
+    "ReciveLikelySpeakingUsers",
+    "ReferedPlayerJoin",
+    "UpdateLocalPlayerBlockList",
+    "SendPlayerProfileSettings",
+    "SetDialougeInUse",
+    "BridgeNet2.metaRemoteEvent",
+    "BridgeNet2.dataRemoteEvent",
+    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
+    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
+}
 
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-
-    if not checkcaller() and self == LocalPlayer and method == "Kick" then
-        warn("[ANTIKICK] Intento de Kick bloqueado")
-        return
-    end
-
-    if method == "FireServer" then
-        for _, remote in pairs(suspiciousRemotes) do
-            if self == remote then
-                print("[ANTIKICK] Bloqueado FireServer en "..remote:GetFullName())
-                -- Bloqueamos el kick pero dejamos que el script siga sin romper la GUI
-                return true
+for _, name in ipairs(suspiciousNames) do
+    local remote = ReplicatedStorage:FindFirstChild(name, true)
+    if remote and remote:IsA("RemoteEvent") then
+        local success, err = pcall(function()
+            local oldFireServer = remote.FireServer
+            remote.FireServer = function(self, ...)
+                print("[ANTIKICK] Bloqueado FireServer en "..self.Name)
+                return -- no ejecutamos el original
             end
+        end)
+        if not success then
+            warn("Error hookeando "..name..": "..tostring(err))
         end
     end
-
-    return oldNamecall(self, ...)
-end)
-
-setreadonly(mt, true)
-
--- También sobreescribimos Kick directo (por si se llama así)
-LocalPlayer.Kick = function(...)
-    warn("[ANTIKICK] Kick directo bloqueado")
-    -- no hacer nada para bloquear kick
 end
+
 
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
