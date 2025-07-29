@@ -1,7 +1,7 @@
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
     local Window = OrionLib:MakeWindow({
-        Name = "HelDark Ro-Karate Script",
+        Name = "darkpro77731 - Elcapo3000677 Ro-Karate Script",
         HidePremium = false,
         SaveConfig = true,
         ConfigFolder = "OrionTest"
@@ -74,10 +74,10 @@ if game.PlaceId == 17072376063 then
 
     local HitboxRemote = ReplicatedStorage:WaitForChild("HitboxClassRemote")
 
-    -- Tabla para guardar las auras de cada jugador
+    
     local auraParts = {}
 
-    -- Función para crear aura para un jugador
+    
     local function createAuraForPlayer(player)
         if auraParts[player] then return auraParts[player] end
         local part = Instance.new("Part")
@@ -98,14 +98,23 @@ if game.PlaceId == 17072376063 then
     task.spawn(function()
     while true do
         if killAuraEnabled then
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                    if humanoid and humanoid.Health > 0 then
-                        local dist = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                        if dist <= killAuraRange then
-                            -- Aquí disparás el remote pasando el HumanoidRootPart para el hitbox
-                            HitboxRemote:FireServer(player.Character:FindFirstChildOfClass("Humanoid"))
+            local myChar = LocalPlayer.Character
+            if not myChar then task.wait() continue end
+
+            local root = myChar:FindFirstChild("HumanoidRootPart")
+            local tool = myChar:FindFirstChildOfClass("Tool")
+
+            if root and tool then
+                local remote = tool:FindFirstChild("Combat")
+                if remote and remote:IsA("RemoteEvent") then
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                            local dist = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                            
+                            if humanoid and humanoid.Health > 0 and dist <= killAuraRange then
+                                remote:FireServer(player.Character)
+                            end
                         end
                     end
                 end
@@ -188,7 +197,7 @@ end)
                     if player ~= LocalPlayer and player.Character then
                         for _, part in pairs(player.Character:GetDescendants()) do
                             if part:IsA("BasePart") then
-                                part.Size = Vector3.new(2, 2, 1) -- Ajustar según el tamaño original estándar
+                                part.Size = Vector3.new(10, 10, 10)
                             end
                         end
                     end
