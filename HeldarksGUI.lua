@@ -1,6 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local remoteNames = {
+local suspiciousRemoteNames = {
     "HitboxEvent",
     "DestroyEvent",
     "SetDialogInUse",
@@ -14,38 +16,63 @@ local remoteNames = {
     "UpdateLocalPlayerBlockList",
     "SendPlayerProfileSettings",
     "SetDialougeInUse",
-    "BridgeNet2.metaRemoteEvent",
-    "BridgeNet2.dataRemoteEvent",
+    "BridgeNet2", -- padre, revisaremos sus hijos
     "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
     "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
 }
 
-for _, remoteName in ipairs(remoteNames) do
-    local remote = ReplicatedStorage:FindFirstChild(remoteName)
+-- Para detectar remotes hijos, los cacheamos aquí:
+local suspiciousRemotes = {}
+
+-- Buscar remotes principales y sus hijos (por ejemplo BridgeNet2.metaRemoteEvent)
+for _, name in ipairs(suspiciousRemoteNames) do
+    local remote = ReplicatedStorage:FindFirstChild(name)
     if remote and remote:IsA("RemoteEvent") then
-        local oldFireServer = remote.FireServer
-        remote.FireServer = function(self, ...)
-            print("[ANTIKICK] Bloqueado FireServer en "..remote.Name)
-            -- Aquí no llamamos al original para bloquear el mensaje
+        table.insert(suspiciousRemotes, remote)
+    elseif remote and remote:IsA("Folder") then
+        -- Es un folder, chequeamos hijos RemoteEvent
+        for _, child in pairs(remote:GetChildren()) do
+            if child:IsA("RemoteEvent") then
+                table.insert(suspiciousRemotes, child)
+            end
         end
     else
-        -- Si no lo encuentra en ReplicatedStorage, intenta buscarlo anidado (ej: BridgeNet2.metaRemoteEvent)
-        local parts = string.split(remoteName, ".")
+        -- Posiblemente nombre anidado con punto, ej: BridgeNet2.metaRemoteEvent
+        local parts = string.split(name, ".")
         if #parts > 1 then
             local parent = ReplicatedStorage:FindFirstChild(parts[1])
             if parent then
                 local nestedRemote = parent:FindFirstChild(parts[2])
                 if nestedRemote and nestedRemote:IsA("RemoteEvent") then
-                    local oldFireServer = nestedRemote.FireServer
-                    nestedRemote.FireServer = function(self, ...)
-                        print("[ANTIKICK] Bloqueado FireServer en "..nestedRemote.Name)
-                    end
+                    table.insert(suspiciousRemotes, nestedRemote)
                 end
             end
         end
     end
 end
 
+-- Hook metamethod para interceptar :FireServer()
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    
+    if method == "FireServer" then
+        for _, remote in pairs(suspiciousRemotes) do
+            if self == remote then
+                print("[ANTIKICK] Bloqueado FireServer en "..remote:GetFullName())
+                return nil -- bloquea la llamada al server
+            end
+        end
+    end
+    
+    return oldNamecall(self, ...)
+end)
+
+setreadonly(mt, true)
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
     local Window = OrionLib:MakeWindow({
