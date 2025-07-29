@@ -1,13 +1,50 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Sobrescribir función Kick local
-LocalPlayer.Kick = function()
-    warn("[ANTIKICK] Kick bloqueado")
+local remoteNames = {
+    "HitboxEvent",
+    "DestroyEvent",
+    "SetDialogInUse",
+    "ContactListInvokeIrisinvite",
+    "ContactListInvokeIrisinviteTeleport",
+    "UpdateCurrentCall",
+    "RequestDeviceCameraOrientation",
+    "RequestDeviceCameraCFrame",
+    "ReciveLikelySpeakingUsers",
+    "ReferedPlayerJoin",
+    "UpdateLocalPlayerBlockList",
+    "SendPlayerProfileSettings",
+    "SetDialougeInUse",
+    "BridgeNet2.metaRemoteEvent",
+    "BridgeNet2.dataRemoteEvent",
+    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
+    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
+}
+
+for _, remoteName in ipairs(remoteNames) do
+    local remote = ReplicatedStorage:FindFirstChild(remoteName)
+    if remote and remote:IsA("RemoteEvent") then
+        local oldFireServer = remote.FireServer
+        remote.FireServer = function(self, ...)
+            print("[ANTIKICK] Bloqueado FireServer en "..remote.Name)
+            -- Aquí no llamamos al original para bloquear el mensaje
+        end
+    else
+        -- Si no lo encuentra en ReplicatedStorage, intenta buscarlo anidado (ej: BridgeNet2.metaRemoteEvent)
+        local parts = string.split(remoteName, ".")
+        if #parts > 1 then
+            local parent = ReplicatedStorage:FindFirstChild(parts[1])
+            if parent then
+                local nestedRemote = parent:FindFirstChild(parts[2])
+                if nestedRemote and nestedRemote:IsA("RemoteEvent") then
+                    local oldFireServer = nestedRemote.FireServer
+                    nestedRemote.FireServer = function(self, ...)
+                        print("[ANTIKICK] Bloqueado FireServer en "..nestedRemote.Name)
+                    end
+                end
+            end
+        end
+    end
 end
-
-
-
 
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
