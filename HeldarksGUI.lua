@@ -4,20 +4,12 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Lista de remotes sospechosos
 local suspiciousRemoteNames = {
-    "HitboxEvent",
-    "DestroyEvent",
-    "SetDialogInUse",
-    "ContactListInvokeIrisinvite",
-    "ContactListInvokeIrisinviteTeleport",
-    "UpdateCurrentCall",
-    "RequestDeviceCameraOrientation",
-    "RequestDeviceCameraCFrame",
-    "ReciveLikelySpeakingUsers",
-    "ReferedPlayerJoin",
-    "UpdateLocalPlayerBlockList",
-    "SendPlayerProfileSettings",
-    "SetDialougeInUse",
-    "BridgeNet2",
+    "HitboxEvent", "DestroyEvent", "SetDialogInUse",
+    "ContactListInvokeIrisinvite", "ContactListInvokeIrisinviteTeleport",
+    "UpdateCurrentCall", "RequestDeviceCameraOrientation",
+    "RequestDeviceCameraCFrame", "ReciveLikelySpeakingUsers",
+    "ReferedPlayerJoin", "UpdateLocalPlayerBlockList",
+    "SendPlayerProfileSettings", "SetDialougeInUse", "BridgeNet2",
     "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
     "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
 }
@@ -51,7 +43,8 @@ for _, name in ipairs(suspiciousRemoteNames) do
 end
 
 if game.PlaceId == 17072376063 then
-    local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+    local OrionLib = loadstring(game:HttpGet(
+                                    ('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
     local Window = OrionLib:MakeWindow({
         Name = "darkpro77731 - Elcapo3000677 Ro-Karate Script",
         HidePremium = false,
@@ -69,11 +62,10 @@ if game.PlaceId == 17072376063 then
 
     local function AutoHealthFarm()
         task.spawn(function()
-            local pullUpRemote = BridgeNet.ReferenceBridge("imadumbexploiter3527d36bd7d656f96a836f1df5085590")
+            local pullUpRemote = BridgeNet.ReferenceBridge(
+                                     "imadumbexploiter3527d36bd7d656f96a836f1df5085590")
             while _G.AutoHealthFarm do
-                for i = 1, 150 * 10 * 2.5 do
-                    pullUpRemote:Fire()
-                end
+                for i = 1, 150 * 10 * 2.5 do pullUpRemote:Fire() end
                 task.wait(2)
             end
         end)
@@ -81,11 +73,10 @@ if game.PlaceId == 17072376063 then
 
     local function StrAutoFarm()
         task.spawn(function()
-            local remote = BridgeNet.ReferenceBridge("imadumbexploiter9d7f88729c2c6ceff3bb1ce223049848")
+            local remote = BridgeNet.ReferenceBridge(
+                               "imadumbexploiter9d7f88729c2c6ceff3bb1ce223049848")
             while _G.StrAutoFarm do
-                for i = 1, 150 * 10 * 2.5 do
-                    remote:Fire()
-                end
+                for i = 1, 150 * 10 * 2.5 do remote:Fire() end
                 task.wait(2)
             end
         end)
@@ -121,95 +112,41 @@ if game.PlaceId == 17072376063 then
         PremiumOnly = false
     })
 
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
 
-    local killAuraEnabled = true
-    local killAuraRange = 500
-    local hitboxAuraEnabled = false -- Puedes poner true si quieres ver la esfera
+    -- Crear el "aura"
+    local aura = Instance.new("Part")
+    aura.Name = "KillAura"
+    aura.Shape = Enum.PartType.Ball
+    aura.Size = Vector3.new(10, 10, 10) -- Radio del aura
+    aura.Transparency = 1 -- Invisible, poné 0.5 si querés ver el hitbox
+    aura.Anchored = false
+    aura.CanCollide = false
+    aura.Massless = true
+    aura.Parent = workspace
 
-    local safeRemoteNames = {
-        "HitboxEvent"
-}
+    -- Soldarlo al personaje
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = character:WaitForChild("HumanoidRootPart")
+    weld.Part1 = aura
+    weld.Parent = aura
 
-    local usableRemote = nil
-    for _, name in pairs(safeRemoteNames) do
-        local remote = ReplicatedStorage:FindFirstChild(name)
-            if remote and remote:IsA("RemoteEvent") then
-                usableRemote = remote
-            break
+    -- Detección de golpes
+    aura.Touched:Connect(function(hit)
+        local humanoid = hit.Parent:FindFirstChild("Humanoid")
+        local targetPlayer = game.Players:GetPlayerFromCharacter(hit.Parent)
+
+        if humanoid and targetPlayer ~= player then
+            -- Daño directo (si no se usa Remote)
+            humanoid:TakeDamage(25)
         end
-    end
-
-    local auraParts = {}
-
-    local function createAuraForPlayer(player)
-        if auraParts[player] then return auraParts[player] end
-        local part = Instance.new("Part")
-        part.Shape = Enum.PartType.Ball
-        part.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
-        part.Transparency = 1
-        part.Color = Color3.fromRGB(255, 0, 0)
-        part.Material = Enum.Material.ForceField
-        part.Anchored = true
-        part.CanCollide = false
-        part.Parent = workspace
-        auraParts[player] = part
-    return part
-end
-
-task.spawn(function()
-    while true do
-        if killAuraEnabled and usableRemote then
-            local character = LocalPlayer.Character
-            if not character then task.wait(1) continue end
-            local root = character:FindFirstChild("HumanoidRootPart")
-            if root then
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                        local distance = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                        if humanoid and humanoid.Health > 0 and distance <= killAuraRange then
-                            pcall(function()
-                                usableRemote:FireServer(player.Character)
-                            end)
-                            task.wait(0.4) -- espera entre ataques para evitar detección
-                        end
-                    end
-                end
-            end
-        end
-        task.wait(0.2)
-    end
-end)
-
-task.spawn(function()
-    while true do
-        if hitboxAuraEnabled then
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local aura = auraParts[player] or createAuraForPlayer(player)
-                    aura.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
-                    aura.CFrame = player.Character.HumanoidRootPart.CFrame
-                    aura.Transparency = 0.5
-                end
-            end
-        else
-            for _, aura in pairs(auraParts) do
-                aura.Transparency = 1
-            end
-        end
-        task.wait(0.3)
-    end
-end)
+    end)
 
     FarmTab1:AddToggle({
         Name = "Kill Aura",
         Default = false,
-        Callback = function(Value)
-            killAuraEnabled = Value
-        end
+        Callback = function(Value) killAuraEnabled = Value end
     })
 
     FarmTab1:AddSlider({
@@ -218,9 +155,7 @@ end)
         Max = 50,
         Default = 15,
         Increment = 1,
-        Callback = function(Value)
-            killAuraRange = Value
-        end
+        Callback = function(Value) killAuraRange = Value end
     })
 
     local FarmTab2 = Window:MakeTab({
@@ -288,9 +223,7 @@ end)
     FarmTab2:AddToggle({
         Name = "Mostrar Hitbox Visual (Aura)",
         Default = false,
-        Callback = function(Value)
-         expandHitboxes = Value
-        end
+        Callback = function(Value) expandHitboxes = Value end
     })
 
     OrionLib:Init()
