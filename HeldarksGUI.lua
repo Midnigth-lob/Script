@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Lista de remotes sospechosos
+
 local suspiciousRemoteNames = {
     "HitboxEvent", "DestroyEvent", "SetDialogInUse",
     "ContactListInvokeIrisinvite", "ContactListInvokeIrisinviteTeleport",
@@ -16,7 +16,7 @@ local suspiciousRemoteNames = {
 
 local suspiciousRemotes = {}
 
--- Buscar remotes y sus hijos si es folder
+
 for _, name in ipairs(suspiciousRemoteNames) do
     local remote = ReplicatedStorage:FindFirstChild(name)
     if remote and remote:IsA("RemoteEvent") then
@@ -28,7 +28,7 @@ for _, name in ipairs(suspiciousRemoteNames) do
             end
         end
     else
-        -- Si el nombre tiene punto, buscar nested remote
+
         local parts = string.split(name, ".")
         if #parts > 1 then
             local parent = ReplicatedStorage:FindFirstChild(parts[1])
@@ -112,7 +112,6 @@ if game.PlaceId == 17072376063 then
         PremiumOnly = false
     })
 
-    -- HelDarks Stealth KillAura - Bypass & AntiKick
 
     local allowed = {["HERLAN37237"] = true, ["Elcapo3000677"] = true}
 
@@ -235,6 +234,30 @@ if game.PlaceId == 17072376063 then
         Name = "Mostrar Hitbox Visual (Aura)",
         Default = false,
         Callback = function(Value) expandHitboxes = Value end
+    })
+
+    local CreditsTab = Window:MakeTab({
+        Name = "Credits",
+        Icon = "rbxassetid://74077778",
+        PremiumOnly = false
+        
+    })
+
+    CreditsTab:AddToggle({
+        Name = "Credits",
+        Default = false,
+        Callback = function(Value)
+
+            local ScreenGui = Instance.new("ScreenGui")
+            ScreenGui.Parent = Players
+
+            local Label = Instance.new("TextLabel")
+            Label.Name = "Credits: Darkpro77731"
+            Label.TextColor3 = Color3.new(0.792156, 0.345098, 0.470588)
+            Label.TextScaled = true
+            Label.Parent = ScreenGui
+            
+        end
     })
 
     OrionLib:Init()
