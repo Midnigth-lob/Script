@@ -1,34 +1,12 @@
-local mt = getrawmetatable(game)
-setreadonly(mt, false)
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
 
-local oldNamecall = mt.__namecall
+local oldKick = lp.Kick
 
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-
-    -- filtrar eventos sospechosos
-    if typeof(self) == "Instance" and self:IsA("RemoteEvent") then
-        if table.find({
-            "HitboxEvent", "DestroyEvent", "SetDialogInUse", "ContactListInvokeIrisinvite",
-            "ContactListInvokeIrisinviteTeleport", "UpdateCurrentCall", "RequestDeviceCameraOrientation",
-            "RequestDeviceCameraCFrame", "ReciveLikelySpeakingUsers", "ReferedPlayerJoin",
-            "UpdateLocalPlayerBlockList", "SendPlayerProfileSettings", "SetDialougeInUse",
-            "BridgeNet2.metaRemoteEvent", "BridgeNet2.dataRemoteEvent",
-            "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
-            "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
-        }, self.Name) then
-            print("[ANTIKICK] Bloqueado Namecall en "..self.Name)
-            return nil
-        end
-    end
-
-    return oldNamecall(self, unpack(args))
-end)
-
-setreadonly(mt, true)
-
-
+lp.Kick = function(...)
+    print("[ANTIKICK] Kick bloqueado")
+    return -- no llamamos a oldKick
+end
 
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
