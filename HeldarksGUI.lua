@@ -1,57 +1,3 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local suspiciousRemoteNames = {
-    "HitboxEvent",
-    "DestroyEvent",
-    "SetDialogInUse",
-    "ContactListInvokeIrisinvite",
-    "ContactListInvokeIrisinviteTeleport",
-    "UpdateCurrentCall",
-    "RequestDeviceCameraOrientation",
-    "RequestDeviceCameraCFrame",
-    "ReciveLikelySpeakingUsers",
-    "ReferedPlayerJoin",
-    "UpdateLocalPlayerBlockList",
-    "SendPlayerProfileSettings",
-    "SetDialougeInUse",
-    "BridgeNet2", -- padre, revisaremos sus hijos
-    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
-    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
-}
-
--- Para detectar remotes hijos, los cacheamos aquí:
-local suspiciousRemotes = {}
-
--- Buscar remotes principales y sus hijos (por ejemplo BridgeNet2.metaRemoteEvent)
-for _, name in ipairs(suspiciousRemoteNames) do
-    local remote = ReplicatedStorage:FindFirstChild(name)
-    if remote and remote:IsA("RemoteEvent") then
-        table.insert(suspiciousRemotes, remote)
-    elseif remote and remote:IsA("Folder") then
-        -- Es un folder, chequeamos hijos RemoteEvent
-        for _, child in pairs(remote:GetChildren()) do
-            if child:IsA("RemoteEvent") then
-                table.insert(suspiciousRemotes, child)
-            end
-        end
-    else
-        -- Posiblemente nombre anidado con punto, ej: BridgeNet2.metaRemoteEvent
-        local parts = string.split(name, ".")
-        if #parts > 1 then
-            local parent = ReplicatedStorage:FindFirstChild(parts[1])
-            if parent then
-                local nestedRemote = parent:FindFirstChild(parts[2])
-                if nestedRemote and nestedRemote:IsA("RemoteEvent") then
-                    table.insert(suspiciousRemotes, nestedRemote)
-                end
-            end
-        end
-    end
-end
-
--- Hook metamethod para interceptar :FireServer()
 local mt = getrawmetatable(game)
 local oldNamecall = mt.__namecall
 setreadonly(mt, false)
@@ -59,16 +5,18 @@ setreadonly(mt, false)
 mt.__namecall = newcclosure(function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
-    
+
     if method == "FireServer" then
         for _, remote in pairs(suspiciousRemotes) do
             if self == remote then
                 print("[ANTIKICK] Bloqueado FireServer en "..remote:GetFullName())
-                return nil -- bloquea la llamada al server
+                -- En lugar de retornar nil, simplemente "engañamos" con un valor válido
+                -- Por ejemplo, devolver true para que el llamador no se crashee
+                return true
             end
         end
     end
-    
+
     return oldNamecall(self, ...)
 end)
 
