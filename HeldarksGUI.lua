@@ -14,6 +14,7 @@ local suspiciousRemoteNames = {
 }
 
 local suspiciousRemotes = {}
+
 for _, name in ipairs(suspiciousRemoteNames) do
     local remote = ReplicatedStorage:FindFirstChild(name)
     if remote and remote:IsA("RemoteEvent") then
@@ -25,6 +26,7 @@ for _, name in ipairs(suspiciousRemoteNames) do
             end
         end
     else
+
         local parts = string.split(name, ".")
         if #parts > 1 then
             local parent = ReplicatedStorage:FindFirstChild(parts[1])
@@ -39,7 +41,8 @@ for _, name in ipairs(suspiciousRemoteNames) do
 end
 
 if game.PlaceId == 17072376063 then
-    local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
+    local OrionLib = loadstring(game:HttpGet(
+                                    ('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
     local Window = OrionLib:MakeWindow({
         Name = "HelDark Hub",
         HidePremium = false,
@@ -55,35 +58,38 @@ if game.PlaceId == 17072376063 then
     local Modules = ReplicatedStorage:WaitForChild("Modules")
     local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
 
-    -- Auto Health Farm
     local function AutoHealthFarm()
-        task.spawn(function()
-            local pullUpRemote = BridgeNet.ReferenceBridge("imadumbexploiter3527d36bd7d656f96a836f1df5085590")
-            local DUPLIKATIONEN = 150
-            while _G.AutoHealthFarm do
-                for i = 2, DUPLIKATIONEN * 10 * 2.5 do
-                    pullUpRemote:Fire()
-                end
-                task.wait(2)
+        
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Modules = ReplicatedStorage:WaitForChild("Modules")
+        local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
+        local pullUpRemote = BridgeNet.ReferenceBridge("imadumbexploiter3527d36bd7d656f96a836f1df5085590")
+        
+        local DUPLIKATIONEN = 150
+        
+        while true do
+            for i = 2, DUPLIKATIONEN * 10 * 2.5 do
+                pullUpRemote:Fire()
             end
-        end)
-    end
+            task.wait(2)
+        end
 
-    -- Auto Strength Farm
     local function StrAutoFarm()
-        task.spawn(function()
-            local remote = BridgeNet.ReferenceBridge("imadumbexploiter9d7f88729c2c6ceff3bb1ce223049848")
-            local ANZAHL_DUPLIKATIONEN = 150
-            while _G.StrAutoFarm do
-                for i = 2, ANZAHL_DUPLIKATIONEN * 10 * 2.5 do
-                    remote:Fire()
-                end
-                task.wait(2)
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Modules = ReplicatedStorage:WaitForChild("Modules")
+        local BridgeNet = require(Modules:WaitForChild("BridgeNet2"))
+        local remote = BridgeNet.ReferenceBridge("imadumbexploiter9d7f88729c2c6ceff3bb1ce223049848")
+        
+        local ANZAHL_DUPLIKATIONEN = 150
+        
+        while true do
+            for i = 2, ANZAHL_DUPLIKATIONEN * 10 * 2.5 do
+                remote:Fire()
             end
-        end)
-    end
+            task.wait(2)
+        end
 
-    -- Tabs
+
     local FarmTab = Window:MakeTab({
         Name = "Autofarm",
         Icon = "rbxassetid://74077778",
@@ -108,7 +114,6 @@ if game.PlaceId == 17072376063 then
         end
     })
 
-    -- Kill Aura
     local FarmTab1 = Window:MakeTab({
         Name = "Kill Aura",
         Icon = "rbxassetid://74077778",
@@ -116,48 +121,49 @@ if game.PlaceId == 17072376063 then
     })
 
     local allowed = {["HERLAN37237"] = true, ["Elcapo3000677"] = true}
-    if allowed[LocalPlayer.Name] then
-        local RS = game:GetService("RunService")
-        local remote = ReplicatedStorage:FindFirstChild("HitboxEvent")
-        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local lastHit = {}
-        local COOLDOWN = 0.75
-        local RANGE = 500
 
-        local function legitHit(target)
-            local args = {
-                ["Target"] = target,
-                ["HitTime"] = tick(),
-                ["Position"] = target:FindFirstChild("HumanoidRootPart").Position,
-                ["From"] = char:FindFirstChild("HumanoidRootPart").Position
-            }
-            pcall(function()
-                remote:FireServer(args)
-            end)
-        end
+    local lp = game:GetService("Players").LocalPlayer
+    if not allowed[lp.Name] then return end
 
-        RS.Stepped:Connect(function()
-            if not killAuraEnabled then return end
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (plr.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
-                    if distance <= killAuraRange then
-                        if (tick() - (lastHit[plr] or 0)) >= COOLDOWN then
-                            lastHit[plr] = tick()
-                            legitHit(plr.Character)
-                        end
+    local RS = game:GetService("RunService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local remote = ReplicatedStorage:FindFirstChild("HitboxEvent")
+    local char = lp.Character or lp.CharacterAdded:Wait()
+
+    local lastHit = {}
+    local COOLDOWN = 0.75
+    local RANGE = 500
+
+    local function legitHit(target)
+        local args = {
+            ["Target"] = target,
+            ["HitTime"] = tick(),
+            ["Position"] = target:FindFirstChild("HumanoidRootPart").Position,
+            ["From"] = char:FindFirstChild("HumanoidRootPart").Position
+        }
+        pcall(function() remote:FireServer(args) end)
+    end
+
+    RS.Stepped:Connect(function()
+        for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+            if plr ~= lp and plr.Character and
+                plr.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (plr.Character.HumanoidRootPart.Position -
+                                     char.HumanoidRootPart.Position).Magnitude
+                if distance <= RANGE then
+                    if (tick() - (lastHit[plr] or 0)) >= COOLDOWN then
+                        lastHit[plr] = tick()
+                        legitHit(plr.Character)
                     end
                 end
             end
-        end)
-    end
+        end
+    end)
 
     FarmTab1:AddToggle({
         Name = "Kill Aura",
         Default = false,
-        Callback = function(Value)
-            killAuraEnabled = Value
-        end
+        Callback = function(Value) killAuraEnabled = Value end
     })
 
     FarmTab1:AddSlider({
@@ -166,19 +172,16 @@ if game.PlaceId == 17072376063 then
         Max = 50,
         Default = 15,
         Increment = 1,
-        Callback = function(Value)
-            killAuraRange = Value
-        end
+        Callback = function(Value) killAuraRange = Value end
     })
 
-    -- Configuración extra
     local FarmTab2 = Window:MakeTab({
         Name = "Configuration",
         Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
 
-    local treesFolder = workspace:FindFirstChild("Trees")
+    local treesFolder = game.Workspace:FindFirstChild("Trees")
     local savedTrees = {}
     local AntiLagEnabled = false
 
@@ -203,17 +206,28 @@ if game.PlaceId == 17072376063 then
         end
     })
 
+    local expandHitboxes = false
+
     FarmTab2:AddToggle({
         Name = "Expandir Hitbox de otros jugadores",
         Default = false,
         Callback = function(Value)
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    for _, part in pairs(player.Character:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            if Value then
+            expandHitboxes = Value
+            if Value then
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        for _, part in pairs(player.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
                                 part.Size = part.Size + Vector3.new(10, 10, 10)
-                            else
+                            end
+                        end
+                    end
+                end
+            else
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        for _, part in pairs(player.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
                                 part.Size = Vector3.new(1, 1, 0.5)
                             end
                         end
@@ -221,6 +235,12 @@ if game.PlaceId == 17072376063 then
                 end
             end
         end
+    })
+
+    FarmTab2:AddToggle({
+        Name = "Mostrar Hitbox Visual (Aura)",
+        Default = false,
+        Callback = function(Value) expandHitboxes = Value end
     })
 
     local CreditsTab = Window:MakeTab({
