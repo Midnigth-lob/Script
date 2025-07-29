@@ -121,37 +121,91 @@ if game.PlaceId == 17072376063 then
         PremiumOnly = false
     })
 
-    local killAuraRange = 15
-    local killAuraEnabled = false
+    local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-    task.spawn(function()
-        while true do
-            if killAuraEnabled then
-                local character = LocalPlayer.Character
-                if not character then task.wait() continue end
+local killAuraEnabled = false
+local killAuraRange = 15
+local hitboxAuraEnabled = false
+local auraParts = {}
 
-                local root = character:FindFirstChild("HumanoidRootPart")
+local function createAuraForPlayer(player)
+    if auraParts[player] then return auraParts[player] end
+    local part = Instance.new("Part")
+    part.Shape = Enum.PartType.Ball
+    part.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
+    part.Transparency = 1
+    part.Color = Color3.fromRGB(255, 0, 0)
+    part.Material = Enum.Material.ForceField
+    part.Anchored = true
+    part.CanCollide = false
+    part.Parent = workspace
+    auraParts[player] = part
+    return part
+end
+
+task.spawn(function()
+    while true do
+        if killAuraEnabled then
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
                 local tool = character:FindFirstChildOfClass("Tool")
+                local combatRemote
 
-                if root and tool then
-                    local combatRemote = tool:FindFirstChild("Combat")
-                    if combatRemote and combatRemote:IsA("RemoteEvent") then
-                        for _, player in pairs(Players:GetPlayers()) do
-                            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                                local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                                local dist = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                if tool then
+                    combatRemote = tool:FindFirstChildWhichIsA("RemoteEvent", true)
+                end
 
-                                if humanoid and humanoid.Health > 0 and dist <= killAuraRange then
-                                    combatRemote:FireServer(player.Character)
-                                end
+                if not combatRemote then
+                    for _, desc in ipairs(character:GetDescendants()) do
+                        if desc:IsA("RemoteEvent") and string.lower(desc.Name):find("sweep") then
+                            combatRemote = desc
+                            break
+                        end
+                    end
+                end
+
+                if combatRemote then
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                            local dist = (root.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                            if humanoid and humanoid.Health > 0 and dist <= killAuraRange then
+                                pcall(function()
+                                    combatRemote:FireServer(player.Character.HumanoidRootPart)
+                                end)
                             end
                         end
                     end
                 end
             end
-            task.wait(0.3)
         end
-    end)
+        task.wait(0.3)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if hitboxAuraEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local aura = auraParts[player] or createAuraForPlayer(player)
+                    aura.Size = Vector3.new(killAuraRange * 2, killAuraRange * 2, killAuraRange * 2)
+                    aura.CFrame = player.Character.HumanoidRootPart.CFrame
+                    aura.Transparency = 0.5
+                end
+            end
+        else
+            for _, aura in pairs(auraParts) do
+                aura.Transparency = 1
+            end
+        end
+        task.wait(0.2)
+    end
+end)
 
     FarmTab1:AddToggle({
         Name = "Kill Aura",
