@@ -112,34 +112,45 @@ if game.PlaceId == 17072376063 then
         PremiumOnly = false
     })
 
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
+    -- HelDarks Stealth KillAura - Bypass & AntiKick
 
-    -- Crear el "aura"
-    local aura = Instance.new("Part")
-    aura.Name = "KillAura"
-    aura.Shape = Enum.PartType.Ball
-    aura.Size = Vector3.new(10, 10, 10) -- Radio del aura
-    aura.Transparency = 1 -- Invisible, poné 0.5 si querés ver el hitbox
-    aura.Anchored = false
-    aura.CanCollide = false
-    aura.Massless = true
-    aura.Parent = workspace
+    local allowed = {["HERLAN37237"] = true, ["Elcapo3000677"] = true}
 
-    -- Soldarlo al personaje
-    local weld = Instance.new("WeldConstraint")
-    weld.Part0 = character:WaitForChild("HumanoidRootPart")
-    weld.Part1 = aura
-    weld.Parent = aura
+    local lp = game:GetService("Players").LocalPlayer
+    if not allowed[lp.Name] then return end
 
-    -- Detección de golpes
-    aura.Touched:Connect(function(hit)
-        local humanoid = hit.Parent:FindFirstChild("Humanoid")
-        local targetPlayer = game.Players:GetPlayerFromCharacter(hit.Parent)
+    local RS = game:GetService("RunService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local remote = ReplicatedStorage:FindFirstChild("HitboxEvent")
+    local char = lp.Character or lp.CharacterAdded:Wait()
 
-        if humanoid and targetPlayer ~= player then
-            -- Daño directo (si no se usa Remote)
-            humanoid:TakeDamage(25)
+    local lastHit = {}
+    local COOLDOWN = 0.75
+    local RANGE = 500
+
+    local function legitHit(target)
+        local args = {
+            ["Target"] = target,
+            ["HitTime"] = tick(),
+            ["Position"] = target:FindFirstChild("HumanoidRootPart").Position,
+            ["From"] = char:FindFirstChild("HumanoidRootPart").Position
+        }
+        pcall(function() remote:FireServer(args) end)
+    end
+
+    RS.Stepped:Connect(function()
+        for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+            if plr ~= lp and plr.Character and
+                plr.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (plr.Character.HumanoidRootPart.Position -
+                                     char.HumanoidRootPart.Position).Magnitude
+                if distance <= RANGE then
+                    if (tick() - (lastHit[plr] or 0)) >= COOLDOWN then
+                        lastHit[plr] = tick()
+                        legitHit(plr.Character)
+                    end
+                end
+            end
         end
     end)
 
