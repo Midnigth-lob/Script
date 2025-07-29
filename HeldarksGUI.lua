@@ -1,3 +1,26 @@
+-- 🛡️ Anti-Kick (poner siempre primero)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local oldKick
+oldKick = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if not checkcaller() and self == LocalPlayer and method == "Kick" then
+        warn("[ANTIKICK] Se bloqueó un intento de Kick:", debug.traceback())
+        return nil
+    end
+
+    return oldKick(self, unpack(args))
+end)
+
+LocalPlayer.Kick = function(...)
+    warn("[ANTIKICK] Se bloqueó un Kick (por asignación directa)")
+    return
+end
+
+
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
     local Window = OrionLib:MakeWindow({
