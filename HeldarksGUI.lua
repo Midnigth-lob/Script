@@ -1,24 +1,29 @@
--- 🛡️ Anti-Kick (poner siempre primero)
+-- 🛡️ Anti-Kick Script
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local oldKick
-oldKick = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-
-    if not checkcaller() and self == LocalPlayer and method == "Kick" then
-        warn("[ANTIKICK] Se bloqueó un intento de Kick:", debug.traceback())
-        return nil
-    end
-
-    return oldKick(self, unpack(args))
-end)
-
-LocalPlayer.Kick = function(...)
-    warn("[ANTIKICK] Se bloqueó un Kick (por asignación directa)")
+-- Prevenir errores si no se tiene permisos de exploit
+if not (hookmetamethod and getnamecallmethod and checkcaller) then
+    warn("[ANTIKICK] ❌ Tu exploit no soporta las funciones necesarias.")
     return
 end
+
+-- Hookear __namecall para bloquear intentos de Kick
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    if not checkcaller() and method == "Kick" and self == LocalPlayer then
+        warn("[ANTIKICK] 🔒 Kick bloqueado (Namecall):", debug.traceback())
+        return nil
+    end
+    return oldNamecall(self, ...)
+end)
+
+-- Hook directo a Player.Kick
+LocalPlayer.Kick = function(...)
+    warn("[ANTIKICK] 🔒 Kick bloqueado (Direct):", debug.traceback())
+end
+
 
 
 if game.PlaceId == 17072376063 then
