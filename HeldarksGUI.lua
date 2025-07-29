@@ -1,12 +1,32 @@
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
+local remotes = {
+    "HitboxEvent",
+    "DestroyEvent",
+    "SetDialogInUse",
+    "ContactListInvokeIrisinvite",
+    "ContactListInvokeIrisinviteTeleport",
+    "UpdateCurrentCall",
+    "RequestDeviceCameraOrientation",
+    "RequestDeviceCameraCFrame",
+    "ReciveLikelySpeakingUsers",
+    "ReferedPlayerJoin",
+    "UpdateLocalPlayerBlockList",
+    "SendPlayerProfileSettings",
+    "SetDialougeInUse",
+    "BridgeNet2.metaRemoteEvent",
+    "BridgeNet2.dataRemoteEvent",
+    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
+    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
+}
 
-local oldKick = lp.Kick
-
-lp.Kick = function(...)
-    print("[ANTIKICK] Kick bloqueado")
-    return -- no llamamos a oldKick
+for _, name in pairs(remotes) do
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild(name)
+    if remote and remote:IsA("RemoteEvent") then
+        -- Destruir conexiones sin hookear
+        remote:Destroy()
+        print("[ANTIKICK] Remote destruido: " .. name)
+    end
 end
+
 
 if game.PlaceId == 17072376063 then
     local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
