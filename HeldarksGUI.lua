@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
 local suspiciousRemoteNames = {
     "HitboxEvent", "DestroyEvent", "SetDialogInUse",
     "ContactListInvokeIrisinvite", "ContactListInvokeIrisinviteTeleport",
@@ -15,7 +14,6 @@ local suspiciousRemoteNames = {
 }
 
 local suspiciousRemotes = {}
-
 
 for _, name in ipairs(suspiciousRemoteNames) do
     local remote = ReplicatedStorage:FindFirstChild(name)
@@ -111,7 +109,6 @@ if game.PlaceId == 17072376063 then
         Icon = "rbxassetid://74077778",
         PremiumOnly = false
     })
-
 
     local allowed = {["HERLAN37237"] = true, ["Elcapo3000677"] = true}
 
@@ -237,13 +234,12 @@ if game.PlaceId == 17072376063 then
     })
 
     local CreditsTab = Window:MakeTab({
-    Name = "Credits",
-    Icon = "rbxassetid://74077778",
-    PremiumOnly = false
-})
+        Name = "Credits",
+        Icon = "rbxassetid://74077778",
+        PremiumOnly = false
+    })
 
-CreditsTab:AddParagraph("Credits To:", "darkpro77731 / Elcapo3000677 - HERLAN37237")
-
+    CreditsTab:AddParagraph("Hecho por:", "darkpro77731 - Elcapo3000677 / HERLAN37237")
 
     OrionLib:Init()
 end
