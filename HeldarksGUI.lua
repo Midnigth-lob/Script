@@ -1,40 +1,33 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local mt = getrawmetatable(game)
+setreadonly(mt, false)
 
-local suspiciousNames = {
-    "HitboxEvent",
-    "DestroyEvent",
-    "SetDialogInUse",
-    "ContactListInvokeIrisinvite",
-    "ContactListInvokeIrisinviteTeleport",
-    "UpdateCurrentCall",
-    "RequestDeviceCameraOrientation",
-    "RequestDeviceCameraCFrame",
-    "ReciveLikelySpeakingUsers",
-    "ReferedPlayerJoin",
-    "UpdateLocalPlayerBlockList",
-    "SendPlayerProfileSettings",
-    "SetDialougeInUse",
-    "BridgeNet2.metaRemoteEvent",
-    "BridgeNet2.dataRemoteEvent",
-    "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
-    "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
-}
+local oldNamecall = mt.__namecall
 
-for _, name in ipairs(suspiciousNames) do
-    local remote = ReplicatedStorage:FindFirstChild(name, true)
-    if remote and remote:IsA("RemoteEvent") then
-        local success, err = pcall(function()
-            local oldFireServer = remote.FireServer
-            remote.FireServer = function(self, ...)
-                print("[ANTIKICK] Bloqueado FireServer en "..self.Name)
-                return -- no ejecutamos el original
-            end
-        end)
-        if not success then
-            warn("Error hookeando "..name..": "..tostring(err))
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    -- filtrar eventos sospechosos
+    if typeof(self) == "Instance" and self:IsA("RemoteEvent") then
+        if table.find({
+            "HitboxEvent", "DestroyEvent", "SetDialogInUse", "ContactListInvokeIrisinvite",
+            "ContactListInvokeIrisinviteTeleport", "UpdateCurrentCall", "RequestDeviceCameraOrientation",
+            "RequestDeviceCameraCFrame", "ReciveLikelySpeakingUsers", "ReferedPlayerJoin",
+            "UpdateLocalPlayerBlockList", "SendPlayerProfileSettings", "SetDialougeInUse",
+            "BridgeNet2.metaRemoteEvent", "BridgeNet2.dataRemoteEvent",
+            "IntegrityCheckProcessorkey2_DynamicTranslationSender_LocalizationService",
+            "5e2f7c07-ce64-4ff0-976f-6f8fc38f9ee"
+        }, self.Name) then
+            print("[ANTIKICK] Bloqueado Namecall en "..self.Name)
+            return nil
         end
     end
-end
+
+    return oldNamecall(self, unpack(args))
+end)
+
+setreadonly(mt, true)
+
 
 
 if game.PlaceId == 17072376063 then
