@@ -237,28 +237,13 @@ if game.PlaceId == 17072376063 then
     })
 
     local CreditsTab = Window:MakeTab({
-        Name = "Credits",
-        Icon = "rbxassetid://74077778",
-        PremiumOnly = false
-        
-    })
+    Name = "Credits",
+    Icon = "rbxassetid://74077778",
+    PremiumOnly = false
+})
 
-    CreditsTab:AddToggle({
-        Name = "Credits",
-        Default = false,
-        Callback = function(Value)
+CreditsTab:AddParagraph("Credits To:", "darkpro77731 / Elcapo3000677 - HERLAN37237")
 
-            local ScreenGui = Instance.new("ScreenGui")
-            ScreenGui.Parent = Players
-
-            local Label = Instance.new("TextLabel")
-            Label.Name = "Credits: Darkpro77731"
-            Label.TextColor3 = Color3.new(0.792156, 0.345098, 0.470588)
-            Label.TextScaled = true
-            Label.Parent = ScreenGui
-            
-        end
-    })
 
     OrionLib:Init()
 end
