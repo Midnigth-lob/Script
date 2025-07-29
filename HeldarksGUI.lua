@@ -174,39 +174,6 @@ for _, name in ipairs(suspiciousRemoteNames) do
             end
         end
     end
-end
-
--- Hook metamethod para interceptar :FireServer()
-local mt = getrawmetatable(game)
-local oldNamecall = mt.__namecall
-setreadonly(mt, false)
-
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-    
-    if method == "FireServer" then
-        for _, remote in pairs(suspiciousRemotes) do
-            if self == remote then
-                print("[ANTIKICK] Bloqueado FireServer en "..remote:GetFullName())
-                return nil -- bloquea la llamada al server
-            end
-        end
-    end
-    
-    return oldNamecall(self, ...)
-end)
-
-setreadonly(mt, true)
-if game.PlaceId == 17072376063 then
-    local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
-    local Window = OrionLib:MakeWindow({
-        Name = "darkpro77731 - Elcapo3000677 Ro-Karate Script",
-        HidePremium = false,
-        SaveConfig = true,
-        ConfigFolder = "OrionTest"
-    })
-
     _G.StrAutoFarm = false
     _G.AutoHealthFarm = false
     local killAuraEnabled = false
